@@ -1,4 +1,8 @@
 
+#ifndef QUEUE
+#define QUEUE
+
+#include "tree.h"
 
 typedef struct _priority_queue{
 	int size; //the number of elements in the queue
@@ -22,3 +26,5 @@ void shiftDown(pr_queue *pq);
 void enqueue(huff_node *node, pr_queue *pq);
 
 huff_node *dequeue(pr_queue *pq);
+
+#endif

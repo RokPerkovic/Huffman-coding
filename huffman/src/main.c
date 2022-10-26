@@ -7,10 +7,7 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "../lib/api/huffman.h"
-
-
 
 void help(){
 	fprintf(stderr, "Usage: huff -c <filename> [-i <filename>] [-o <filename>] | huff -d <filename> [-i <filename>] [-o <filename>]\n");
@@ -20,21 +17,16 @@ void help(){
 //filename: pointer to filename to be set to default, mode (1: compress, 2: decompress)
 void set_default_out_file(char *filename, char *name, int mode){
 	int name_len = strlen(name);
-	//char *tmp;// = malloc(name_len * sizeof(char));
-	//strcpy(tmp, name); //strtok modifies original string
-	//tmp = name;
+	char *tmp = malloc(name_len * sizeof(char));
+	strcpy(tmp, name); //strtok modifies original string
 	
-	//currently just appends .huff to the input file name
-	strcpy(filename, name /*strtok(tmp, ".")*/);
+	strcpy(filename, strtok(tmp, "."));
 		
 	if(mode == 1){
 		strcat(filename, ".huff");
 	}
-	else{
-		filename[name_len - 5] = '\0';
-	}
 	
-	//free(tmp);
+	free(tmp);
 }
 
 int main(int argc, char *args[]){

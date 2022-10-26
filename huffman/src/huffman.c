@@ -93,12 +93,15 @@ void shiftUp(struct priorityQueue *pq){
 void shiftDown(struct priorityQueue *pq){
 	int idx = 1;
 	while(idx < pq->lastIdx){
+		//printf("idx: %d\n", idx);
 		double minValue = pq->heap[idx]->c->weight;
+		//printf("here...min: %f\n", minValue);
 		int minIdx = idx;
 		
 		int leftIdx = left(idx, pq);
 		if(leftIdx > 0 && pq->heap[leftIdx]->c->weight < minValue){
 			minValue = pq->heap[leftIdx]->c->weight;
+			
 			minIdx = leftIdx;
 		}
 		
@@ -115,6 +118,7 @@ void shiftDown(struct priorityQueue *pq){
 		swap(idx,minIdx, pq);
 		idx = minIdx;
 	}
+	
 }
 
 
@@ -137,6 +141,7 @@ void enqueue(struct hNode *node, struct priorityQueue *pq){
 	}
 	
 	pq->lastIdx++;
+	printf("last idx: %d, capac: %d\n", pq->lastIdx, pq->capacity);
 	pq->heap[pq->lastIdx] = node;
 	pq->size++;
 	shiftUp(pq);
@@ -171,6 +176,8 @@ struct hNode *buildHuffmanTree(struct priorityQueue *pq){
 		struct character *sum = malloc(sizeof(struct character));
 		sum->c = '$';
 		left = dequeue(pq);
+		//printf("here: %p\n", left->c);
+		//printf("here\n");
 		right = dequeue(pq);
 		
 		sum->weight = left->c->weight + right->c->weight;
@@ -329,7 +336,7 @@ void traverseHTree(struct hNode *root, int fd){
 	}
 	
 	encodeNode(root, fd);
-	
+	printf("%c, %s\n", root->c->c, root->c->hcode);
 	traverseHTree(root->left, fd);
 	traverseHTree(root->right, fd);
 }
@@ -352,7 +359,7 @@ void deallocateHTree(struct hNode *root){
         deallocateHTree(root->left);
         deallocateHTree(root->right);
         
-        //printf("Deleting Node : %c\n", root->c.c);
+        printf("Deleting Node : %c\n", root->c->c);
         free(root);
         
         return;
@@ -412,7 +419,7 @@ int main(int argc, char *argv[]){
 	while((n = read(fd, buff, BUFF_SIZE)) > 0){
 		fileLen+=n;
 		buff[n] = '\0';
-		
+		//printf("read: %d\n", n);
 		
 		for(int c = 0; c < n; c++){
 			if(arrayOfCharacters[(int)buff[c]] != NULL){
@@ -452,9 +459,18 @@ int main(int argc, char *argv[]){
 		if(arrayOfCharacters[i]){
 			struct hNode *nd = createhNode(arrayOfCharacters[i]);
 			enqueue(nd, pq);
+			//printf("enqueued: %c\n", nd->c->c);
 		}
-		//printf("heap size: %d\n", pq->size);	
+		
 	}
+	
+	/*for(int i = 0; i < pq->size + 1; i++){
+		if(pq->heap[i]){
+			printf("...%c\n", pq->heap[i]->c->c);	
+		}
+	}*/
+	//printf("heap size: %d\n", pq->size);	
+	//printf("enqueued: %p\n", pq->heap[0]->c);
 	//e = omp_get_wtime();
 	/*t = clock() - t;
 	time_taken = ((double)t)/CLOCKS_PER_SEC;
@@ -463,6 +479,7 @@ int main(int argc, char *argv[]){
 	//s = omp_get_wtime();
 	//t = clock();
 	struct hNode *root = buildHuffmanTree(pq);
+	//printf("root: %c\n", root->left->right->left->c->c);
 	//e = omp_get_wtime();
 	/*t = clock() - t;
 	time_taken = ((double)t)/CLOCKS_PER_SEC;

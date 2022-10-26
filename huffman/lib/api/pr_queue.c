@@ -1,6 +1,6 @@
 #include "pr_queue.h"
-#include "tree.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 int parent(int idx){
 	if(idx <= 1){
@@ -18,98 +18,106 @@ void swap(int idx1, int idx2, pr_queue *pq){
 
 //vrne indeks levega otroka podanega indeksa ce obstaja, 0 sicer
 int left(int idx, pr_queue *pq){
-	int leftChild = idx * 2;
-	if(leftChild <= pq->lastIdx){
-		return leftChild;
+	int left_child = idx * 2;
+	if(left_child <= pq->last_idx){
+		return left_child;
 	}
 	return 0;
 }
 
 //vrne indeks desnega otroka podanega indeksa ce obstaja, 0 sicer
 int right(int idx, pr_queue *pq){
-	int rightChild = idx * 2 + 1;
-	if(rightChild <= pq->lastIdx){
-		return rightChild;
+	int right_child = idx * 2 + 1;
+	if(right_child <= pq->last_idx){
+		return right_child;
 	}
 	return 0;
 }
 
 //dvigne node na pravo mesto v kopici -> dviguje dokler je otrok manjsi od starsa
-void shiftUp(pr_queue *pq){
-	int idx = pq->lastIdx;
-	int parentIdx = parent(idx);
-	while(parentIdx > 0 && pq->heap[idx]->c->weight < pq->heap[parentIdx]->c->weight){
-		swap(idx, parentIdx, pq);
-		idx = parentIdx;
-		parentIdx = parent(parentIdx);
+void shift_up(pr_queue *pq){
+	int idx = pq->last_idx;
+	int parent_idx = parent(idx);
+	while(parent_idx > 0 && pq->heap[idx]->c->weight < pq->heap[parent_idx]->c->weight){
+		swap(idx, parent_idx, pq);
+		idx = parent_idx;
+		parent_idx = parent(parent_idx);
 	}
 }
 
 //ugrezne element
-void shiftDown(pr_queue *pq){
+void shift_down(pr_queue *pq){
 	int idx = 1;
-	while(idx < pq->lastIdx){
-		double minValue = pq->heap[idx]->c->weight;
-		int minIdx = idx;
+	while(idx < pq->last_idx){
+		double min_value = pq->heap[idx]->c->weight;
+		int min_idx = idx;
 		
-		int leftIdx = left(idx, pq);
-		if(leftIdx > 0 && pq->heap[leftIdx]->c->weight < minValue){
-			minValue = pq->heap[leftIdx]->c->weight;
-			minIdx = leftIdx;
+		int left_idx = left(idx, pq);
+		if(left_idx > 0 && pq->heap[left_idx]->c->weight < min_value){
+			min_value = pq->heap[left_idx]->c->weight;
+			min_idx = left_idx;
 		}
 		
-		int rightIdx = right(idx, pq);
-		if(rightIdx > 0 && pq->heap[rightIdx]->c->weight < minValue){
-			minValue = pq->heap[rightIdx]->c->weight;
-			minIdx = rightIdx;
+		int right_idx = right(idx, pq);
+		if(right_idx > 0 && pq->heap[right_idx]->c->weight < min_value){
+			min_value = pq->heap[right_idx]->c->weight;
+			min_idx = right_idx;
 		}
 		
-		if(minIdx == idx){
+		if(min_idx == idx){
 			break;
 		}
+		swap(idx,min_idx, pq);
 		
-		swap(idx,minIdx, pq);
-		idx = minIdx;
+		idx = min_idx;
 	}
 }
 
 
 //operacije nad priority queue
 
+void resize(pr_queue *pq){
+	huff_node **tmp_heap = pq->heap;
+	int tmp_capac = pq->capacity;
+	pq->heap = malloc(tmp_capac * 2 * sizeof(huff_node *));
+	pq->capacity = tmp_capac * 2;
+	for(int i = 0; i < tmp_capac; i++){
+		pq->heap[i] = tmp_heap[i];
+		free(tmp_heap[i]);
+	}	
+	free(tmp_heap);
+}
+
 //vstavi nov node na zadnje mesto v kopici in ga dvigne
 void enqueue(huff_node *node, pr_queue *pq){
+	//queue capacity is set to number of unique characters in input so resize never occurs
+	/*if(pq->last_idx + 1 > pq->capacity - 1){
+		resize(pq);
+	}*/
 	
-	if(pq->lastIdx + 1 > pq->capacity - 1){
-		//resize queue
-		struct hNode **tmpHeap = pq->heap;
-		int tmpCapac = pq->capacity;
-		pq->heap = malloc(tmpCapac * 2 * sizeof(huff_node *));
-		pq->capacity = tmpCapac * 2;
-		for(int i = 0; i < tmpCapac; i++){
-			pq->heap[i] = tmpHeap[i];
-			free(tmpHeap[i]);
-		}	
-		free(tmpHeap);
-	}
-	
-	pq->lastIdx++;
-	pq->heap[pq->lastIdx] = node;
+	pq->last_idx++;
+	//printf("last idx: %d, size: %d\n", pq->last_idx, pq->capacity);
+	pq->heap[pq->last_idx] = node;
 	pq->size++;
-	shiftUp(pq);
+	shift_up(pq);
+	//printf("here %d\n", pq->size);
+	
 }
 
 //zamenja prvi in zadnji element, zadnjega odstrani in prvega ugrezne
-struct hNode *dequeue(struct priorityQueue *pq){
-	if(pq->lastIdx <= 0){
+huff_node *dequeue(pr_queue *pq){
+	
+	if(pq->last_idx <= 0){
 		return NULL;
 	}
 	
-	struct hNode *root = pq->heap[1];
-	swap(1, pq->lastIdx, pq);
+	huff_node *root = pq->heap[1];
+	
+	swap(1, pq->last_idx, pq);
 	//free(pq->heap[pq->lastIdx]); ?
 	
-	pq->lastIdx--;
-	shiftDown(pq);
+	pq->last_idx--;
+	shift_down(pq);
 	pq->size--;
 	
 	return root;
