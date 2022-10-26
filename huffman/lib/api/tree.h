@@ -6,8 +6,6 @@
 
 #define BUFF_SIZE 512
 
-
-
 typedef struct _character{
 	int16_t c;
 	char *h_code;
@@ -31,15 +29,55 @@ typedef struct _huff_char{
 } huff_char_map;
 
 
+/*
+	*allocates memory for a map of unique characters that appear in the input file
+	*inserts a special EOF huff_char that denotes end of encoded content in the encoded file
+*/
 void init_char_map();
+
+/*
+	*reads the input file
+	*fills the huff_char_map with unique characters that appear in the input file
+*/
 
 void scan_in_file(int in_fd);
 
+/*
+	*allocates memory for a new encoding tree node
+	*stores a character c in the node	
+	
+*/
+
 huff_node *create_huff_node(huff_char *c);
+
+/*
+	*builds heap of unique characters that appear in the input file
+	*uses dequeue operation on the heap to get left and right child of the root
+*/
 
 huff_node *build_huff_tree();
 
-void encode(huff_node *root, char *h_code, int parent);
+
+/*
+	*traverses the encoding tree from root to leaves
+	*builds a string of 1s and 0s representing code for the leaf node (h_code)	
+	*parent denotes the encoding of the previous node
+	
+*/
+void encode_huff_chars(huff_node *root, char *h_code, int parent);
+
+/*
+	*writes out the encoded coding tree with preorder traversal
+	 at the beggining of the output file
+	*non-leaf nodes are encoded as 0-bit
+	*leaf nodes are encoded as 1-bit followed by 16-bit representation of the character they store
+*/
+
+void encode_huff_tree(huff_node *root, int in_fd);
+
+/*
+	allocated memory clean up
+*/
 
 void free_huff_chars();
 

@@ -51,11 +51,22 @@ void huffman_compress(char *in_file, char *out_file){
 	huff_node *root = build_huff_tree();
 	
 	//append huffman code to each leaf in a tree
-	char *h_code = (char *)malloc(50 * sizeof(char)); //huffman code for each character
-	encode(root, h_code, 0);
+	char *h_code = (char *)calloc(50, sizeof(char)); //huffman code for each character
+	encode_huff_chars(root, h_code, 0);
 	free(h_code);
 	
+	
+	//second traversal of the input file to write encoded characters to output file
+	
+	lseek(in_fd, 0, SEEK_SET); //move back to the start of input file
+	lseek(in_fd, 1, SEEK_SET); //reserve 1 byte at the start for number of encoding tree blocks
+	
+	encode_huff_tree(root, out_fd);
+	
+	
 	//traverseHTree(root);
+	
+	
 	//clean up
 	free_huff_tree(root);
 	
