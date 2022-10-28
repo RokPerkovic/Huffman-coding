@@ -6,6 +6,11 @@
 
 
 #include "../api/tree.h"
+#include "../api/util.h"
+
+int block_count = 0;
+char block_bin_code[33];
+unsigned char input_buff[BUFF_SIZE + 1];
 
 
 void traverseHTree(huff_node *root){
@@ -60,12 +65,27 @@ void huffman_compress(char *in_file, char *out_file){
 	
 	lseek(in_fd, 0, SEEK_SET); //move back to the start of input file
 	lseek(in_fd, 1, SEEK_SET); //reserve 1 byte at the start for number of encoding tree blocks
+	unsigned int bit_buffer = 0;
+	int bit_count = 0;
+	encode_huff_tree(root, &bit_buffer, &bit_count, &block_count, out_fd);
 	
-	encode_huff_tree(root, out_fd);
+	bit_buffer = bit_buffer << (32 - bit_count);
+	unsigned char remainder = 32 - bit_count;
+	if(remainder < 32){
+		write(out_fd, &bit_buffer, sizeof(unsigned int));
+		dec_to_bin(block_bin_code, bit_buffer, 32);
+		printf("%s\n", block_bin_code);
+		
+		block_count++;	
+	}
+	printf("remainder: %d, bit_count: %d, block_count: %d\n",remainder, bit_count, block_count);
+	
+	//write number of encoding tree blocks to the reserved byte in the ouput file 
+	lseek(out_fd, 0, SEEK_SET);
+	write(out_fd, &block_count, sizeof(unsigned char));
 	
 	
-	//traverseHTree(root);
-	
+	encode_content();
 	
 	//clean up
 	free_huff_tree(root);

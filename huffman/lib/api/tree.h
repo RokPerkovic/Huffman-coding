@@ -73,7 +73,7 @@ void encode_huff_chars(huff_node *root, char *h_code, int parent);
 	*leaf nodes are encoded as 1-bit followed by 16-bit representation of the character they store
 */
 
-void encode_huff_tree(huff_node *root, int in_fd);
+void encode_huff_tree(huff_node *root, unsigned int *bit_buffer, int *bit_count, int *block_count, int in_fd);
 
 /*
 	allocated memory clean up

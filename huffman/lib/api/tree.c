@@ -4,12 +4,17 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "bit.h"
 #include "tree.h"
+#include "util.h"
+
 #include "pr_queue.h"
 
 pr_queue pq;
 huff_char_map huff_chars;
 unsigned char input_buff[BUFF_SIZE + 1];
+char char_bin_code[17];
+//unsigned int bit_buffer = 0;
 
 void init_char_map(){
 	huff_chars.map = calloc(257, sizeof(huff_char *));
@@ -133,12 +138,7 @@ void encode_huff_chars(huff_node *root, char *h_code, int parent){
 }
 
 
-void write_bits(int16_t bits, int out_fd){
-	//printf("len: %ld, bits: %s\n", strlen(bits), bits);
-	printf("%c, dec: %d\n", bits, bits);
-}
-
-void encode_huff_tree(huff_node *root, int out_fd){
+void encode_huff_tree(huff_node *root, unsigned int *bit_buffer, int *bit_count, int *block_count, int out_fd){
 	if(root == NULL){
 		return;
 	}
@@ -146,17 +146,19 @@ void encode_huff_tree(huff_node *root, int out_fd){
 	if(!(root->left) && !(root->right)){
 		//leaf
 		char bit = '1';
-		write_bits(1, out_fd);
-		write_bits(root->c->c, out_fd);
+		dec_to_bin(char_bin_code, root->c->c, 16);
+		printf("%c...%s\n", root->c->c, char_bin_code);
+		write_bits(&bit, 1, bit_buffer, bit_count, block_count, out_fd);
+		write_bits(char_bin_code, 16, bit_buffer, bit_count, block_count, out_fd);
 	}
 	else{
 		//non-leaf node
 		char bit = '0';
-		write_bits(0, out_fd);
+		write_bits(&bit, 1, bit_buffer, bit_count, block_count, out_fd);
 	}
 	
-	encode_huff_tree(root->left, out_fd);
-	encode_huff_tree(root->right, out_fd);
+	encode_huff_tree(root->left, bit_buffer, bit_count, block_count, out_fd);
+	encode_huff_tree(root->right, bit_buffer, bit_count, block_count, out_fd);
 }
 
 
