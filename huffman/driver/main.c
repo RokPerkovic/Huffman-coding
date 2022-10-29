@@ -38,7 +38,7 @@ void set_default_out_file(char *filename, char *name, int mode){
 }
 
 int main(int argc, char *args[]){
-	
+
 	if(argc < 2){
 		help();
 		exit(1);
