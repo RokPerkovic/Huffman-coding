@@ -14,6 +14,7 @@ pr_queue pq;
 huff_char_map huff_chars;
 unsigned char input_buff[BUFF_SIZE + 1];
 char char_bin_code[17];
+char block_bin_code1[33];
 //unsigned int bit_buffer = 0;
 
 void init_char_map(){
@@ -31,11 +32,12 @@ void scan_in_file(int in_fd){
 	
 	int n;
 	while((n = read(in_fd, input_buff, BUFF_SIZE)) > 0){
+		if(n < 0){
+			perror("Error reading input file...");
+			exit(2);
+		}
 		input_buff[n] = '\0';
-		//printf("read: %d\n", n);
-		//printf("%s", input_buff);
 		for(int c = 0; c < n; c++){
-			//printf("%c", input_buff[c]);
 			if(huff_chars.map[(int)input_buff[c]]){
 				//character already in the map. Increment occurance counter
 				huff_chars.map[(int)input_buff[c]]->weight+=1.0;
@@ -45,31 +47,19 @@ void scan_in_file(int in_fd){
 				huff_char *chr = calloc(1, sizeof(huff_char));
 				chr->c = input_buff[c];
 				chr->weight = 1.0;
-				//printf("%d\n", (int)input_buff[c]);
+				
 				huff_chars.map[(int)input_buff[c]] = chr;
-				//printf("%p\n", huff_chars.map[(int)input_buff[c]]);
 				huff_chars.size++;
-				//printf("%c\n", input_buff[c]);	
 			}
 		}	
 	}
-	//printf("\n\n");
-	//printf("size: %d\n", huff_chars.size);
-	
-	/*for(int i = 0; i < 257; i++){
-		if(huff_chars.map[i]){
-			printf("%d\n ", huff_chars.map[i]->c);
-		}	
-	}*/
 }
 
 void build_heap(){
 	for(int i = 0; i < 257; i++){
 		if(huff_chars.map[i]){
 			huff_node *node = create_huff_node(huff_chars.map[i]);
-			
 			enqueue(node, &pq);
-			//printf("enqueue: %c\n", huff_chars.map[i]);
 		}
 	}
 }
@@ -81,7 +71,7 @@ huff_node *create_huff_node(huff_char *c){
 	tmp->c = c;
 	tmp->left = NULL;
 	tmp->right = NULL;
-	//printf("allocated: %c, %p\n", tmp->c->c, tmp);
+	
 	return tmp;
 }
 
@@ -92,7 +82,6 @@ huff_node *build_huff_tree(){
 	pq.capacity = huff_chars.size + 1;
 	pq.last_idx = 0;
 	pq.heap = calloc(pq.capacity, sizeof(huff_node *));
-	//printf("here %d\n", pq.capacity);
 	build_heap();
 	
 
@@ -105,7 +94,6 @@ huff_node *build_huff_tree(){
 		
 		left = dequeue(&pq);
 		right = dequeue(&pq);
-		//printf("%c %c\n", left->c->c, right->c->c);
 		
 		sum->weight = left->c->weight + right->c->weight;
 		
@@ -115,7 +103,6 @@ huff_node *build_huff_tree(){
 		
 		enqueue(parent, &pq);
 	}
-	//vrne kazalec na root kopice
 	return dequeue(&pq);
 }
 
@@ -130,10 +117,10 @@ void encode_huff_chars(huff_node *root, char *h_code, int parent){
 		encode_huff_chars(root->right, h_code, parent+1);
 	}
 	if(!(root->left) && !(root->right)){
-		//listu dodeli dvojisko kodo
 		h_code[parent] = '\0';
 		root->c->h_code = calloc((parent + 1) /*(strlen(h_code) + 1)*/, sizeof(char));
 		strcpy(root->c->h_code, h_code);
+		root->c->h_code_len = parent;
 	}
 }
 
@@ -147,7 +134,7 @@ void encode_huff_tree(huff_node *root, unsigned int *bit_buffer, int *bit_count,
 		//leaf
 		char bit = '1';
 		dec_to_bin(char_bin_code, root->c->c, 16);
-		printf("%c...%s\n", root->c->c, char_bin_code);
+
 		write_bits(&bit, 1, bit_buffer, bit_count, block_count, out_fd);
 		write_bits(char_bin_code, 16, bit_buffer, bit_count, block_count, out_fd);
 	}
@@ -159,6 +146,36 @@ void encode_huff_tree(huff_node *root, unsigned int *bit_buffer, int *bit_count,
 	
 	encode_huff_tree(root->left, bit_buffer, bit_count, block_count, out_fd);
 	encode_huff_tree(root->right, bit_buffer, bit_count, block_count, out_fd);
+}
+
+void encode_content(unsigned int *bit_buffer, int *bit_count, int *block_count, int in_fd, int out_fd){
+	int n;
+	while((n = read(in_fd, input_buff, BUFF_SIZE)) > 0){
+		if(n < 0){
+			perror("Error reading input file...");
+			exit(2);
+		}
+	
+		input_buff[n] = '\0';
+		
+		for(int c = 0; c < n; c++){
+			huff_char *hc = huff_chars.map[input_buff[c]];
+			write_bits(hc->h_code, hc->h_code_len, bit_buffer, bit_count, block_count, out_fd);	
+		}	
+	}
+	
+	huff_char *p_eof = huff_chars.map[256];
+	write_bits(p_eof->h_code, p_eof->h_code_len, bit_buffer, bit_count, block_count, out_fd);
+	
+	int remainder = 32 - *bit_count;
+	
+	if(remainder < 32){
+		*bit_buffer = *bit_buffer << (32 - *bit_count);
+		write(out_fd, bit_buffer, sizeof(unsigned int));
+	
+		/*dec_to_bin(block_bin_code1, *bit_buffer, 32);
+		printf("%s\n", block_bin_code1);*/
+	}
 }
 
 
@@ -178,8 +195,6 @@ void free_huff_tree(huff_node *root){
 	}
         free_huff_tree(root->left);
         free_huff_tree(root->right);
-        
-        //printf("Deleting Node : %c\n", root->c->c);
         
         if(root->c->h_code){
         	free(root->c->h_code);

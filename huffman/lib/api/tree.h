@@ -9,6 +9,7 @@
 typedef struct _character{
 	int16_t c;
 	char *h_code;
+	int h_code_len;
 	double weight;
 } huff_char;
 
@@ -65,6 +66,8 @@ huff_node *build_huff_tree();
 	
 */
 void encode_huff_chars(huff_node *root, char *h_code, int parent);
+
+void encode_content(unsigned int *bit_buffer, int *bit_count, int *block_count, int in_fd, int out_fd);
 
 /*
 	*writes out the encoded coding tree with preorder traversal

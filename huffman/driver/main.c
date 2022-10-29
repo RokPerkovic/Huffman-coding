@@ -39,7 +39,7 @@ void set_default_out_file(char *filename, char *name, int mode){
 
 int main(int argc, char *args[]){
 	
-	if(argc < 3){
+	if(argc < 2){
 		help();
 		exit(1);
 	}
@@ -53,7 +53,7 @@ int main(int argc, char *args[]){
 	
 	int opt;
 	
-	while((opt = getopt(argc, args, "ci:o:dh")) >= 0){
+	while((opt = getopt(argc, args, "ci:o:dhgs")) >= 0){
 		switch(opt){
 			case 'c':
 				if(decompress){
@@ -73,6 +73,27 @@ int main(int argc, char *args[]){
 			case 'o':
 				out_file = optarg;
 				break;
+				
+			case 'g':
+				printf("GUI\n");
+				/*	
+					Start in GUI mode.
+					TODO: In this case, other parameters/options are not required.
+					If provided, it will be passed to GUI.
+				*/
+				break;
+				
+			case 's': 
+				printf("statistics...\n");
+				/*
+					TODO: Print result statistics (compression ratio, time elapsed)...,
+					Print progress...,
+					encodings (tree, content, ...) ..., 
+					Encoded tree size, encoded content size, ...
+				*/
+				
+				break;
+				
 			case 'h': help(); break;
 		}
 	}

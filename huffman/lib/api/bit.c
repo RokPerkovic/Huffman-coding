@@ -7,19 +7,15 @@
 #include "util.h"
 #include "bit.h"
 
-//unsigned int bit_buffer = 0;
 
-//int bit_count = 0;
-//int block_count = 0;
 char block_bin_code[33];
-
 
 /*
 	*optimization: try to move whole *bits* in *bit_buffer*
 	*if there is no room for all the *bits* continue by shifting 1 bit a time
 */
 void write_bits(/*int16_t bits*/char *bits, int size, unsigned int *bit_buffer, int *bit_count, int *block_count, int out_fd){
-	//printf("bits: %s\n", bits);
+
 	int i;
 	
 	for(i = 0; i < size; i++){
@@ -34,26 +30,23 @@ void write_bits(/*int16_t bits*/char *bits, int size, unsigned int *bit_buffer, 
 		
 		if (*bit_count == 32) { 
 			int n = write(out_fd, bit_buffer, sizeof(unsigned int));
-			dec_to_bin(block_bin_code, *bit_buffer, 32);
-			printf("%s\n", block_bin_code);
+			/*dec_to_bin(block_bin_code, *bit_buffer, 32);
+			printf("%s, %u\n", block_bin_code,  *bit_buffer);*/
 			
 			if(n < 0){
 				perror("error writing compressed");
 			}
 			*bit_buffer = 0;
 			*bit_count = 0;
-			*block_count = *block_count + 1;;
+			*block_count = *block_count + 1;
 			break;	
 		}
 	}
-	//printf("size: %d\n", size);
+
 	if(i < size - 1){
 		size = strlen(bits + i + 1);
-		//printf("i: %d, ostanek %s\n", i, bits + i + 1);
 		write_bits(bits + i + 1, size, bit_buffer, bit_count, block_count, out_fd);			
 	}	
-	
-	
 	
 	//printf("len: %ld, bits: %s\n", strlen(bits), bits);
 	/*printf("%c, dec: %d\n", bits, bits);
@@ -68,6 +61,4 @@ void write_bits(/*int16_t bits*/char *bits, int size, unsigned int *bit_buffer, 
 	
 	block_to_bin(bit_buffer);
 	printf("buff: %s\n", bin_code);*/
-	
-	
 }
