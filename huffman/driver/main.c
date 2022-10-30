@@ -114,7 +114,7 @@ int main(int argc, char *args[]){
 		}
 		
 		//printf("Compress... input: %s, output: %s\n", in_file, out_file);
-		huffman_compress(in_file, out_file);
+		huff_compress(in_file, out_file);
 		
 		
 	}
@@ -125,7 +125,7 @@ int main(int argc, char *args[]){
 		}
 		
 		//printf("Decompress... input: %s, output: %s\n", in_file, out_file);
-		huffman_decompress(in_file, out_file);
+		huff_decompress(in_file, out_file);
 	}
 	else{
 		help();

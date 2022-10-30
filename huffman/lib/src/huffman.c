@@ -14,6 +14,8 @@ int bit_count = 0;
 char block_bin_code[33];
 unsigned char input_buff[BUFF_SIZE + 1];
 
+unsigned char huff_tree_blocks;
+
 
 void traverse_huff_tree(huff_node *root){
 	if(root == NULL){
@@ -26,7 +28,7 @@ void traverse_huff_tree(huff_node *root){
 }
 
 
-void huffman_compress(char *in_file, char *out_file){
+void huff_compress(char *in_file, char *out_file){
 	printf("Compress... input: %s, output: %s\n", in_file, out_file);
 	//input: ../lib/api/pr_queue.h, output: /lib/api/pr_queue.huff !!!
 
@@ -82,6 +84,7 @@ void huffman_compress(char *in_file, char *out_file){
 	//write the number of encoding tree blocks to the reserved byte in the ouput file 
 	lseek(out_fd, 0, SEEK_SET);
 	write(out_fd, &block_count, sizeof(unsigned char));
+	printf("num of huff_tree blocks: %d\n", block_count);
 	
 	bit_count = 0;
 	bit_buffer = 0;
@@ -89,7 +92,7 @@ void huffman_compress(char *in_file, char *out_file){
 	lseek(out_fd, 0, SEEK_END);
 	lseek(in_fd, 0, SEEK_SET);
 	
-	encode_content(&bit_buffer, &bit_count, &block_count, in_fd, out_fd);
+	//encode_content(&bit_buffer, &bit_count, &block_count, in_fd, out_fd);
 	
 	//traverse_huff_tree(root);
 	
@@ -111,8 +114,72 @@ void huffman_compress(char *in_file, char *out_file){
 }
 
 
-void huffman_decompress(char *in_file, char *out_file){
+void huff_decompress(char *in_file, char *out_file){
 	printf("Decompress... input: %s, output: %s\n", in_file, out_file);
+	char replace_answer;
+	
+	int in_fd, out_fd; //input, output file descriptors
+	
+	in_fd = open(in_file, O_RDONLY);
+	if(in_fd < 0){
+		perror("Error opening input file...");
+		exit(1);
+	}
+	
+	//check if a file with the same name as out_file already exists
+	if (access(out_file, F_OK) == 0){
+		//file exists
+		printf("File %s already exists.\n", out_file);
+		printf("Do you want to replace it? (Y/N)\n");
+		scanf("%c", &replace_answer);
+		if(replace_answer == 'Y'){
+			printf("replaced\n");
+		}
+		else{
+			printf("exit!\n");
+			exit(2);	
+		}
+	}
+	
+	out_fd = open(out_file, O_WRONLY | O_CREAT | O_TRUNC, 0664);
+	if(out_fd < 0){
+		perror("Error opening output file...");
+		exit(1);
+	}
+	
+	//Read in the first byte of the encoded file which represents the number of 32-bit encoding tree blocks
+	int rb;
+	if((rb = read(in_fd, &huff_tree_blocks, sizeof(unsigned char))) < 0){
+		perror("Error reading huff tree blocks\n");
+		exit(1);
+	}
+	
+	printf("num of huff_tree blocks: %d\n", huff_tree_blocks);
+	
+	
+	//allocate huff_tree_blocks * sizeof(unsigned int) array and read the whole encoded tree into array. 
+	
+	unsigned int *encoded_huff_tree = malloc(huff_tree_blocks * sizeof(unsigned int));
+	if((rb = read(in_fd, encoded_huff_tree, huff_tree_blocks * sizeof(unsigned int))) < 0){
+		perror("Error reading encoded tree...");
+		exit(2);
+	}
+	
+	huff_node *root = rebuild_huff_tree(encoded_huff_tree, huff_tree_blocks);	
+	
+	
+	free(encoded_huff_tree);
+	
+	if(close(in_fd) < 0){
+		perror("Error closing input file...");
+		exit(2);
+	}
+	
+	if(close(out_fd) < 0){
+		perror("Error closing output file...");
+		exit(2);
+	}
+	
 }
 
 

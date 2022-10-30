@@ -59,6 +59,9 @@ huff_node *create_huff_node(huff_char *c);
 huff_node *build_huff_tree();
 
 
+huff_node *rebuild_huff_tree(unsigned int *encoded_huff_tree, int block_count);
+
+
 /*
 	*traverses the encoding tree from root to leaves
 	*builds a string of 1s and 0s representing code for the leaf node (h_code)	

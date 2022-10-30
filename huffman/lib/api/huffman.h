@@ -8,6 +8,6 @@
 	*Then follows the n 32-bit blocks of encoding tree 
 	*Finally, the encoded content is written and enclosed with pseudo EOF character.
 */
-void huffman_compress(char *in_file, char *out_file);
+void huff_compress(char *in_file, char *out_file);
 
-void huffman_decompress(char *in_file, char *out_file);
+void huff_decompress(char *in_file, char *out_file);

@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+int read_bit(unsigned int *encoded_huff_tree, unsigned int *mask);
+
 /*
 	*receives binary string *bits* and writes it to output file *out_fd*.
 	*stores number of bits *bit_count* in the *bit_buffer*.

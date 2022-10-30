@@ -15,7 +15,10 @@ huff_char_map huff_chars;
 unsigned char input_buff[BUFF_SIZE + 1];
 char char_bin_code[17];
 char block_bin_code1[33];
-//unsigned int bit_buffer = 0;
+
+unsigned int tree_block;
+unsigned int mask = 2147483648; // 1 << 31
+
 
 void init_char_map(){
 	huff_chars.map = calloc(257, sizeof(huff_char *));
@@ -104,6 +107,32 @@ huff_node *build_huff_tree(){
 		enqueue(parent, &pq);
 	}
 	return dequeue(&pq);
+}
+
+
+huff_node *rebuild_huff_tree(unsigned int *encoded_huff_tree, int block_count){
+	if(mask <= 0){
+		//16-bit char starts in new 32-bit block
+		//advance in array of tree blocks and continue
+		encoded_huff_tree++;
+	}
+	
+
+	if(read_bit(encoded_huff_tree, &mask) == 1){
+		//make_char();
+	}
+	else{
+		huff_node *left = rebuild_huff_tree(encoded_huff_tree, block_count);
+		huff_node *right = rebuild_huff_tree(encoded_huff_tree, block_count);
+		huff_node *root = malloc(sizeof(huff_node));
+		
+		root->left = left;
+		root->right = right;
+		
+		return root;
+	}
+	
+	return NULL;
 }
 
 
