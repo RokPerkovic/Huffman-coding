@@ -154,21 +154,34 @@ void huff_decompress(char *in_file, char *out_file){
 		exit(1);
 	}
 	
-	printf("num of huff_tree blocks: %d\n", huff_tree_blocks);
+	//printf("num of huff_tree blocks: %d\n", huff_tree_blocks);
 	
 	
 	//allocate huff_tree_blocks * sizeof(unsigned int) array and read the whole encoded tree into array. 
 	
 	unsigned int *encoded_huff_tree = malloc(huff_tree_blocks * sizeof(unsigned int));
+	unsigned int *tmp = encoded_huff_tree;
 	if((rb = read(in_fd, encoded_huff_tree, huff_tree_blocks * sizeof(unsigned int))) < 0){
 		perror("Error reading encoded tree...");
 		exit(2);
 	}
 	
-	huff_node *root = rebuild_huff_tree(encoded_huff_tree, huff_tree_blocks);	
+	/*for(int i = 0; i < huff_tree_blocks; i++){
+		dec_to_bin(block_bin_code, encoded_huff_tree[i], 32);
+		printf("%s\n", block_bin_code);
+	}*/
+	
+	/*printf("---------------------\n");
+	printf("pre: %p\n", (void *)encoded_huff_tree);
+	*/
 	
 	
-	free(encoded_huff_tree);
+	huff_node *root = rebuild_huff_tree(&encoded_huff_tree, huff_tree_blocks);	
+	printf("root: %d\n", root->left->left->c->c);
+	
+	//printf("post: %p\n", encoded_huff_tree[0]);
+	//printf("post1: %p\n", encoded_huff_tree[1]);
+	free(tmp);
 	
 	if(close(in_fd) < 0){
 		perror("Error closing input file...");

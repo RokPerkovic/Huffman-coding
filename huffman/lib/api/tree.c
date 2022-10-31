@@ -18,6 +18,7 @@ char block_bin_code1[33];
 
 unsigned int tree_block;
 unsigned int mask = 2147483648; // 1 << 31
+int blocks_read = 0;
 
 
 void init_char_map(){
@@ -52,6 +53,7 @@ void scan_in_file(int in_fd){
 				chr->weight = 1.0;
 				
 				huff_chars.map[(int)input_buff[c]] = chr;
+				//printf("%d\n", input_buff[c]);
 				huff_chars.size++;
 			}
 		}	
@@ -110,18 +112,42 @@ huff_node *build_huff_tree(){
 }
 
 
-huff_node *rebuild_huff_tree(unsigned int *encoded_huff_tree, int block_count){
-	if(mask <= 0){
-		//16-bit char starts in new 32-bit block
-		//advance in array of tree blocks and continue
-		encoded_huff_tree++;
+huff_node *rebuild_huff_tree(unsigned int **encoded_huff_tree, int block_count){
+	if(blocks_read == block_count){
+		return NULL;
 	}
 	
-
-	if(read_bit(encoded_huff_tree, &mask) == 1){
-		//make_char();
+	if(mask == 0){
+		//printf("mask 0\n");
+		*encoded_huff_tree = *encoded_huff_tree + 1;
+		mask = 1 << 31;
+		blocks_read++;	
+	}
+	
+	if(read_bit(*encoded_huff_tree, &mask) == 1){
+		//printf("1\n");
+		mask = mask >> 1; // place the mask bit on the first bit of the following character
+		if(mask == 0){
+			//printf("mask 0\n");
+			*encoded_huff_tree = *encoded_huff_tree + 1;
+			mask = 1 << 31;
+			blocks_read++;	
+		}
+		
+		//printf("mask: %u\n", mask);
+		int16_t chr = make_char(encoded_huff_tree, &mask, &blocks_read); //read next 16 bits and construct a character
+		printf("%c\n", chr);
+		huff_char *character = malloc(sizeof(huff_char));
+		character->c = chr;
+		huff_node *leaf = create_huff_node(character);
+		
+		return leaf;
+		//return NULL;
 	}
 	else{
+		//printf("0\n");
+		mask = mask >> 1;
+		//printf("mask: %u\n", mask);
 		huff_node *left = rebuild_huff_tree(encoded_huff_tree, block_count);
 		huff_node *right = rebuild_huff_tree(encoded_huff_tree, block_count);
 		huff_node *root = malloc(sizeof(huff_node));
@@ -130,6 +156,7 @@ huff_node *rebuild_huff_tree(unsigned int *encoded_huff_tree, int block_count){
 		root->right = right;
 		
 		return root;
+		//return NULL;
 	}
 	
 	return NULL;

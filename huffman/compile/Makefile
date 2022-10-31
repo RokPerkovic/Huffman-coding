@@ -5,6 +5,7 @@
 CC = gcc
 CFLAGS = -Wall -pedantic -std=c99
 OBJ = huff
+LIBS = -lm
 
 all: ../bin/huff 
 	
@@ -12,7 +13,7 @@ all: ../bin/huff
 #...which .o files are needed to build huff executable?
 #  >>make huff	
 ../bin/huff: ../obj/main.o ../obj/huffman.o ../obj/tree.o ../obj/pr_queue.o ../obj/bit.o ../obj/util.o
-	$(CC) ../obj/main.o ../obj/huffman.o ../obj/tree.o ../obj/pr_queue.o ../obj/bit.o ../obj/util.o -o ../bin/huff $(CFLAGS)
+	$(CC) ../obj/main.o ../obj/huffman.o ../obj/tree.o ../obj/pr_queue.o ../obj/bit.o ../obj/util.o -o ../bin/huff $(CFLAGS) $(LIBS)
 
 #...which files are needed to build .o files that are needed to build huff executable?
 	
@@ -40,8 +41,11 @@ all: ../bin/huff
 	
 
 
-exec:
-	../bin/huff -c in.txt
+execc:
+	../bin/huff -c ../bin/plrabn12.txt
+	
+execd:
+	../bin/huff -d ../bin/plrabn12.txt.huff
 
 #...remove .o files and executables, clean rebuild the whole project
 clean: 
