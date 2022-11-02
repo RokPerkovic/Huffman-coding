@@ -17,6 +17,7 @@ char char_bin_code[17];
 char block_bin_code1[33];
 
 unsigned int tree_block;
+unsigned int content_block;
 unsigned int mask = 2147483648; // 1 << 31
 int blocks_read = 0;
 
@@ -81,6 +82,20 @@ huff_node *create_huff_node(huff_char *c){
 }
 
 
+void traverse_huff_tree(huff_node *root){
+	if(root == NULL){
+		return;
+	}
+	
+	if(!root->left){
+		printf("%c, %s, %d\n", root->c->c, root->c->h_code, root->c->h_code_len);
+	}
+	
+	traverse_huff_tree(root->left);
+	traverse_huff_tree(root->right);
+}
+
+
 huff_node *build_huff_tree(){
 	//build a heap of unique characters found in input
 	pq.size = 0;
@@ -112,31 +127,20 @@ huff_node *build_huff_tree(){
 }
 
 
-huff_node *rebuild_huff_tree(unsigned int **encoded_huff_tree, int block_count){
-	if(blocks_read == block_count){
-		return NULL;
-	}
-	
-	if(mask == 0){
-		//printf("mask 0\n");
-		*encoded_huff_tree = *encoded_huff_tree + 1;
-		mask = 1 << 31;
-		blocks_read++;	
-	}
+huff_node *rebuild_huff_tree(unsigned int **encoded_huff_tree){
+	//printf("call...\n");
 	
 	if(read_bit(*encoded_huff_tree, &mask) == 1){
-		//printf("1\n");
 		mask = mask >> 1; // place the mask bit on the first bit of the following character
 		if(mask == 0){
-			//printf("mask 0\n");
 			*encoded_huff_tree = *encoded_huff_tree + 1;
 			mask = 1 << 31;
-			blocks_read++;	
+			//blocks_read++;		
 		}
 		
-		//printf("mask: %u\n", mask);
-		int16_t chr = make_char(encoded_huff_tree, &mask, &blocks_read); //read next 16 bits and construct a character
-		printf("%c\n", chr);
+		int16_t chr = make_char(encoded_huff_tree, &mask); //read next 16 bits and construct a character
+		
+		//printf("%c, %d\n", chr, chr);
 		huff_char *character = malloc(sizeof(huff_char));
 		character->c = chr;
 		huff_node *leaf = create_huff_node(character);
@@ -145,12 +149,19 @@ huff_node *rebuild_huff_tree(unsigned int **encoded_huff_tree, int block_count){
 		//return NULL;
 	}
 	else{
-		//printf("0\n");
+		
 		mask = mask >> 1;
-		//printf("mask: %u\n", mask);
-		huff_node *left = rebuild_huff_tree(encoded_huff_tree, block_count);
-		huff_node *right = rebuild_huff_tree(encoded_huff_tree, block_count);
+		if(mask == 0){
+			//printf("mask 0\n");
+			*encoded_huff_tree = *encoded_huff_tree + 1;
+			mask = 1 << 31;
+			//blocks_read++;	
+		}
+		
+		huff_node *left = rebuild_huff_tree(encoded_huff_tree);
+		huff_node *right = rebuild_huff_tree(encoded_huff_tree);
 		huff_node *root = malloc(sizeof(huff_node));
+		
 		
 		root->left = left;
 		root->right = right;
@@ -235,6 +246,52 @@ void encode_content(unsigned int *bit_buffer, int *bit_count, int *block_count, 
 }
 
 
+void decode_content(huff_node *root, huff_node *node, unsigned int mask, int in_fd, char *output_buff, int *buff_pos, int out_fd){
+	
+	if((mask == (1 << 31)) || (mask == 0)){
+		read_block(in_fd, &content_block);
+		mask = 1 << 31;
+	}
+	
+	if(!node->left && !node->right){
+		//leaf
+		
+		if(node->c->c == 1000){ //EOF?
+			return;
+		}
+		//printf("%c", node->c->c);
+		//output_buff[*buff_pos] = node->c->c;
+		
+		/*if(*buff_pos == (BUFF_SIZE - 1)){
+			output_buff[*buff_pos] = node->c->c;
+			output_buff[BUFF_SIZE] = '\0';
+			write(out_fd, output_buff, BUFF_SIZE);
+			*buff_pos = 0;
+			printf("%s", output_buff);
+		}
+		else{
+			*buff_pos = *buff_pos + 1;
+		}*/
+		//start from the root again
+		node = root;
+	}
+	
+	
+	if(read_bit(&content_block, &mask) == 1){
+		//move to the right
+		//printf("right\n");
+		mask = mask >> 1;
+		decode_content(root, node->right, mask, in_fd, output_buff, buff_pos, out_fd);
+	}
+	else{
+		//move to the left
+		//printf("left\n");
+		mask = mask >> 1;
+		decode_content(root, node->left, mask, in_fd, output_buff, buff_pos, out_fd);
+	}
+}
+
+
 void free_huff_chars(){
 	for(int c = 0; c < 257; c++){
 		if(huff_chars.map[c]){
@@ -252,9 +309,10 @@ void free_huff_tree(huff_node *root){
         free_huff_tree(root->left);
         free_huff_tree(root->right);
         
-        if(root->c->h_code){
+        if(root->c && root->c->h_code){
         	free(root->c->h_code);
         }
+       
         free(root->c);
         free(root);
         return;

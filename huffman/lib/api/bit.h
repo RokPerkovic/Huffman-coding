@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-int read_bit(unsigned int *encoded_huff_tree, unsigned int *mask);
+int read_bit(unsigned int *encoded_block, unsigned int *mask);
 
 /*
 	*receives binary string *bits* and writes it to output file *out_fd*.

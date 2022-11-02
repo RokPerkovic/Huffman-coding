@@ -11,12 +11,11 @@
 char block_bin_code[33];
 
 
-int read_bit(unsigned int *encoded_huff_tree, unsigned int *mask){
-	if(*encoded_huff_tree & *mask){ 
-		//leaf node:16-bit character follows
+int read_bit(unsigned int *encoded_block, unsigned int *mask){
+	if(*encoded_block & *mask){ 
 		return 1;
 	}
-	//non-leaf node
+	
 	return 0;
 }
 
@@ -43,7 +42,7 @@ void write_bits(/*int16_t bits*/char *bits, int size, unsigned int *bit_buffer, 
 		if (*bit_count == 32) { 
 			int n = write(out_fd, bit_buffer, sizeof(unsigned int));
 			/*dec_to_bin(block_bin_code, *bit_buffer, 32);
-			printf("%u\n", *bit_buffer);*/
+			printf("%s\n", block_bin_code);*/
 			
 			if(n < 0){
 				perror("error writing compressed");

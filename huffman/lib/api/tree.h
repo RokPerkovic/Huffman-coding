@@ -6,6 +6,8 @@
 
 #define BUFF_SIZE 512
 
+//unsigned int mask = 2147483648;
+
 typedef struct _character{
 	int16_t c;
 	char *h_code;
@@ -51,6 +53,8 @@ void scan_in_file(int in_fd);
 
 huff_node *create_huff_node(huff_char *c);
 
+void traverse_huff_tree(huff_node *root);
+
 /*
 	*builds heap of unique characters that appear in the input file
 	*uses dequeue operation on the heap to get left and right child of the root
@@ -59,7 +63,7 @@ huff_node *create_huff_node(huff_char *c);
 huff_node *build_huff_tree();
 
 
-huff_node *rebuild_huff_tree(unsigned int **encoded_huff_tree, int block_count);
+huff_node *rebuild_huff_tree(unsigned int **encoded_huff_tree);
 
 
 /*
@@ -71,6 +75,8 @@ huff_node *rebuild_huff_tree(unsigned int **encoded_huff_tree, int block_count);
 void encode_huff_chars(huff_node *root, char *h_code, int parent);
 
 void encode_content(unsigned int *bit_buffer, int *bit_count, int *block_count, int in_fd, int out_fd);
+
+void decode_content(huff_node *root, huff_node *node, unsigned int mask, int in_fd, char *output_buff, int *buff_pos, int out_fd);
 
 /*
 	*writes out the encoded coding tree with preorder traversal

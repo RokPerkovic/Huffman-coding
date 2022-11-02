@@ -17,17 +17,6 @@ unsigned char input_buff[BUFF_SIZE + 1];
 unsigned char huff_tree_blocks;
 
 
-void traverse_huff_tree(huff_node *root){
-	if(root == NULL){
-		return;
-	}
-	printf("%c, %s, %d\n", root->c->c, root->c->h_code, root->c->h_code_len);
-	traverse_huff_tree(root->left);
-	
-	traverse_huff_tree(root->right);
-}
-
-
 void huff_compress(char *in_file, char *out_file){
 	printf("Compress... input: %s, output: %s\n", in_file, out_file);
 	//input: ../lib/api/pr_queue.h, output: /lib/api/pr_queue.huff !!!
@@ -84,7 +73,7 @@ void huff_compress(char *in_file, char *out_file){
 	//write the number of encoding tree blocks to the reserved byte in the ouput file 
 	lseek(out_fd, 0, SEEK_SET);
 	write(out_fd, &block_count, sizeof(unsigned char));
-	printf("num of huff_tree blocks: %d\n", block_count);
+	//printf("num of huff_tree blocks: %d\n", block_count);
 	
 	bit_count = 0;
 	bit_buffer = 0;
@@ -92,7 +81,7 @@ void huff_compress(char *in_file, char *out_file){
 	lseek(out_fd, 0, SEEK_END);
 	lseek(in_fd, 0, SEEK_SET);
 	
-	//encode_content(&bit_buffer, &bit_count, &block_count, in_fd, out_fd);
+	encode_content(&bit_buffer, &bit_count, &block_count, in_fd, out_fd);
 	
 	//traverse_huff_tree(root);
 	
@@ -115,7 +104,7 @@ void huff_compress(char *in_file, char *out_file){
 
 
 void huff_decompress(char *in_file, char *out_file){
-	printf("Decompress... input: %s, output: %s\n", in_file, out_file);
+	//printf("Decompress... input: %s, output: %s\n", in_file, out_file);
 	char replace_answer;
 	
 	int in_fd, out_fd; //input, output file descriptors
@@ -176,12 +165,30 @@ void huff_decompress(char *in_file, char *out_file){
 	*/
 	
 	
-	huff_node *root = rebuild_huff_tree(&encoded_huff_tree, huff_tree_blocks);	
-	printf("root: %d\n", root->left->left->c->c);
+	huff_node *root = rebuild_huff_tree(&encoded_huff_tree);	
+	traverse_huff_tree(root);
+	printf("root: %p\n", root->right->left->left->c);
+	//printf("end of tree\n");
+
+	//TODO: where to reset mask after rebuilding encoding tree to make it reusable...
+	unsigned int content_mask = 1 << 31;
 	
-	//printf("post: %p\n", encoded_huff_tree[0]);
-	//printf("post1: %p\n", encoded_huff_tree[1]);
+	char output_buff[BUFF_SIZE];
+	int buff_pos = 0;
+
+	decode_content(root, root, content_mask, in_fd, output_buff, &buff_pos, out_fd);
+	
+	/*if(buff_pos > 0){
+		//printf("ostanek...%d\n\n", buff_pos);
+		//left over
+		output_buff[buff_pos] = '\0';
+		write(out_fd, output_buff, buff_pos);
+		//printf("%s", output_buff);
+	}*/
+
 	free(tmp);
+	
+	free_huff_tree(root);
 	
 	if(close(in_fd) < 0){
 		perror("Error closing input file...");
