@@ -8,8 +8,8 @@
     3. run the huff executable
     
 #### Command line options
-   - -c
-   - -d
+   - -c, encoding mode
+   - -d, decoding mode
    - -i
 
 
