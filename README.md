@@ -1,6 +1,7 @@
 # Huffman-coding
 
-Usage: 
+## Command line interface
+    Usage: 
 
     -run the Makefile located in the compile directory,
   
