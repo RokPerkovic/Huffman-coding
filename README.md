@@ -1,6 +1,13 @@
 # Huffman-coding
 
 ## Command line interface
+
+#### Project structure:
+- driver: contains the program with main function, main.c
+- lib: contains  header files and libraries
+  - aaa
+  - bbb
+
 #### Usage: 
 
     1. run the make command in the compile directory where Makefile is located
