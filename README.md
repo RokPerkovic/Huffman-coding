@@ -8,7 +8,8 @@
     3. run the huff executable
     
 #### Command line options
-    - -c
-    - -d
+   - George Washington
+   - John Adams
+   - Thomas Jefferson
 
 
