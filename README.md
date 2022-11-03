@@ -16,4 +16,7 @@
    - -s, print stats/info (not yet implemented)
    - -h, display help
 
+Input file name argument is required. You can specify it as a -i followed by a file name or just as a standard argument. 
+Example: ./huff -c -i input.txt or ./huff -c input.txt
+
 
