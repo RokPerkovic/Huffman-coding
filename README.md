@@ -1,7 +1,8 @@
 # Huffman-coding
 
 #### About:
-This is a implementation of a static Huffman coding and decoding algorithm in C programming language. Static means that the encoding tree is transmitted with the encoded content of the input.
+This is a implementation of a static Huffman coding and decoding algorithm in C programming language. Static means that the input must be read twice and the encoding tree is transmitted with the encoded content of the input.
+It is assumed that the input contains at most 256 unique characters.
 Encoder uses a binary min-heap to construct an encoding tree which is then used to encode the input.
 Encoded file consists of encoded encoding tree in the header followed by the encoded content.
 Decoder first reconstructs the encoding tree and then uses it to decode the content.
