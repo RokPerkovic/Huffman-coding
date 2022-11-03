@@ -10,6 +10,7 @@
 #### Command line options
    - -c, encoding mode
    - -d, decoding mode
-   - -i
+   - -i, optional input file
+   - -o, optional output file
 
 
