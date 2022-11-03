@@ -21,7 +21,7 @@ int read_bit(unsigned int *encoded_block, unsigned int *mask){
 
 
 /*
-	*optimization: try to move whole *bits* in *bit_buffer*
+	TODO: *optimization: try to move whole *bits* in *bit_buffer*
 	*if there is no room for all the *bits* continue by shifting 1 bit a time
 */
 
@@ -58,18 +58,4 @@ void write_bits(/*int16_t bits*/char *bits, int size, unsigned int *bit_buffer, 
 		size = strlen(bits + i + 1);
 		write_bits(bits + i + 1, size, bit_buffer, bit_count, block_count, out_fd);			
 	}	
-	
-	//printf("len: %ld, bits: %s\n", strlen(bits), bits);
-	/*printf("%c, dec: %d\n", bits, bits);
-	
-	bit_count+=size;
-	printf("count: %d\n", bit_count);
-	if(bit_count >= 32){
-		printf("full\n");
-	}
-	
-	bit_buffer = bit_buffer << size | bits;
-	
-	block_to_bin(bit_buffer);
-	printf("buff: %s\n", bin_code);*/
 }

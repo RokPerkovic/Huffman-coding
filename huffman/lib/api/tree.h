@@ -76,7 +76,7 @@ void encode_huff_chars(huff_node *root, char *h_code, int parent);
 
 void encode_content(unsigned int *bit_buffer, int *bit_count, int *block_count, int in_fd, int out_fd);
 
-void decode_content(huff_node *root, huff_node *node, unsigned int mask, int in_fd, char *output_buff, int *buff_pos, int out_fd);
+void decode_content(huff_node *root, unsigned int *mask, int in_fd, char *output_buff, int *buff_pos, int out_fd);
 
 /*
 	*writes out the encoded coding tree with preorder traversal

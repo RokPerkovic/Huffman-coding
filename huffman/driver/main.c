@@ -113,10 +113,7 @@ int main(int argc, char *args[]){
 			out_file = default_out_file;
 		}
 		
-		//printf("Compress... input: %s, output: %s\n", in_file, out_file);
-		huff_compress(in_file, out_file);
-		
-		
+		huff_encode(in_file, out_file);
 	}
 	else if(decompress){
 		if(out_file == NULL){
@@ -124,8 +121,7 @@ int main(int argc, char *args[]){
 			out_file = default_out_file;
 		}
 		
-		//printf("Decompress... input: %s, output: %s\n", in_file, out_file);
-		huff_decompress(in_file, out_file);
+		huff_decode(in_file, out_file);
 	}
 	else{
 		help();

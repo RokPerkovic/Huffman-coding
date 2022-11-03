@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "bit.h"
 #include "tree.h"
@@ -88,7 +89,7 @@ void traverse_huff_tree(huff_node *root){
 	}
 	
 	if(!root->left){
-		printf("%c, %s, %d\n", root->c->c, root->c->h_code, root->c->h_code_len);
+		printf("%d, %s, %d\n", root->c->c, root->c->h_code, root->c->h_code_len);
 	}
 	
 	traverse_huff_tree(root->left);
@@ -146,16 +147,13 @@ huff_node *rebuild_huff_tree(unsigned int **encoded_huff_tree){
 		huff_node *leaf = create_huff_node(character);
 		
 		return leaf;
-		//return NULL;
 	}
 	else{
 		
 		mask = mask >> 1;
 		if(mask == 0){
-			//printf("mask 0\n");
 			*encoded_huff_tree = *encoded_huff_tree + 1;
-			mask = 1 << 31;
-			//blocks_read++;	
+			mask = 1 << 31;	
 		}
 		
 		huff_node *left = rebuild_huff_tree(encoded_huff_tree);
@@ -167,10 +165,7 @@ huff_node *rebuild_huff_tree(unsigned int **encoded_huff_tree){
 		root->right = right;
 		
 		return root;
-		//return NULL;
 	}
-	
-	return NULL;
 }
 
 
@@ -185,7 +180,7 @@ void encode_huff_chars(huff_node *root, char *h_code, int parent){
 	}
 	if(!(root->left) && !(root->right)){
 		h_code[parent] = '\0';
-		root->c->h_code = calloc((parent + 1) /*(strlen(h_code) + 1)*/, sizeof(char));
+		root->c->h_code = calloc((parent + 1), sizeof(char));
 		strcpy(root->c->h_code, h_code);
 		root->c->h_code_len = parent;
 	}
@@ -246,48 +241,49 @@ void encode_content(unsigned int *bit_buffer, int *bit_count, int *block_count, 
 }
 
 
-void decode_content(huff_node *root, huff_node *node, unsigned int mask, int in_fd, char *output_buff, int *buff_pos, int out_fd){
+
+int16_t decode_char(huff_node *root, unsigned int *mask, int in_fd){
 	
-	if((mask == (1 << 31)) || (mask == 0)){
+	if(*mask == 0){
 		read_block(in_fd, &content_block);
-		mask = 1 << 31;
+		*mask = 1 << 31;
 	}
 	
-	if(!node->left && !node->right){
+	if(!root->left && !root->right){
 		//leaf
-		
-		if(node->c->c == 1000){ //EOF?
-			return;
-		}
-		//printf("%c", node->c->c);
-		//output_buff[*buff_pos] = node->c->c;
-		
-		/*if(*buff_pos == (BUFF_SIZE - 1)){
-			output_buff[*buff_pos] = node->c->c;
-			output_buff[BUFF_SIZE] = '\0';
-			write(out_fd, output_buff, BUFF_SIZE);
-			*buff_pos = 0;
-			printf("%s", output_buff);
-		}
-		else{
-			*buff_pos = *buff_pos + 1;
-		}*/
-		//start from the root again
-		node = root;
+		return root->c->c;
 	}
 	
 	
-	if(read_bit(&content_block, &mask) == 1){
+	if(read_bit(&content_block, mask) == 1){
 		//move to the right
-		//printf("right\n");
-		mask = mask >> 1;
-		decode_content(root, node->right, mask, in_fd, output_buff, buff_pos, out_fd);
+		*mask = *mask >> 1;
+		return decode_char(root->right, mask, in_fd);
 	}
 	else{
 		//move to the left
-		//printf("left\n");
-		mask = mask >> 1;
-		decode_content(root, node->left, mask, in_fd, output_buff, buff_pos, out_fd);
+		*mask = *mask >> 1;
+		return decode_char(root->left, mask, in_fd);
+	}
+}
+
+
+void decode_content(huff_node *root, unsigned int *mask, int in_fd, char *output_buff, int *buff_pos, int out_fd){
+	
+	int16_t c;
+	
+	while((c = decode_char(root, mask, in_fd)) != 1000){
+		output_buff[*buff_pos] = c;
+	
+		if(*buff_pos == (BUFF_SIZE - 1)){
+			output_buff[*buff_pos] = c;
+			output_buff[BUFF_SIZE] = '\0';
+			write(out_fd, output_buff, BUFF_SIZE);
+			*buff_pos = 0;
+		}
+		else{
+			*buff_pos = *buff_pos + 1;
+		}	
 	}
 }
 

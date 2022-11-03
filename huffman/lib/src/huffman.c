@@ -17,17 +17,28 @@ unsigned char input_buff[BUFF_SIZE + 1];
 unsigned char huff_tree_blocks;
 
 
-void huff_compress(char *in_file, char *out_file){
-	printf("Compress... input: %s, output: %s\n", in_file, out_file);
-	//input: ../lib/api/pr_queue.h, output: /lib/api/pr_queue.huff !!!
-
+void huff_encode(char *in_file, char *out_file){
+	printf("Encoding...\n input: %s\n", in_file);
 	
 	int in_fd, out_fd; //input, output file descriptors
+	char replace_answer;
 	
 	in_fd = open(in_file, O_RDONLY);
 	if(in_fd < 0){
 		perror("Error opening input file...");
 		exit(1);
+	}
+	
+	//check if a file with the same name as out_file already exists
+	if (access(out_file, F_OK) == 0){
+		//file exists
+		printf("File %s already exists.\n", out_file);
+		printf("Do you want to replace it? (y/n)\n");
+		scanf("%c", &replace_answer);
+		if(replace_answer == 'n'){
+			printf("exit!\n");
+			exit(2);
+		}
 	}
 	
 	out_fd = open(out_file, O_WRONLY | O_CREAT | O_TRUNC, 0664);
@@ -65,7 +76,6 @@ void huff_compress(char *in_file, char *out_file){
 		write(out_fd, &bit_buffer, sizeof(unsigned int));
 		/*dec_to_bin(block_bin_code, bit_buffer, 32);
 		printf("%s\n", block_bin_code);*/
-		
 		block_count++;	
 	}
 
@@ -100,11 +110,13 @@ void huff_compress(char *in_file, char *out_file){
 		perror("Error closing output file...");
 		exit(2);
 	}
+	
+	printf("Done!\n output: %s\n", out_file);
 }
 
 
-void huff_decompress(char *in_file, char *out_file){
-	//printf("Decompress... input: %s, output: %s\n", in_file, out_file);
+void huff_decode(char *in_file, char *out_file){
+	printf("Decoding...\n input: %s\n", in_file);
 	char replace_answer;
 	
 	int in_fd, out_fd; //input, output file descriptors
@@ -119,14 +131,11 @@ void huff_decompress(char *in_file, char *out_file){
 	if (access(out_file, F_OK) == 0){
 		//file exists
 		printf("File %s already exists.\n", out_file);
-		printf("Do you want to replace it? (Y/N)\n");
+		printf("Do you want to replace it? (y/n)\n");
 		scanf("%c", &replace_answer);
-		if(replace_answer == 'Y'){
-			printf("replaced\n");
-		}
-		else{
+		if(replace_answer == 'n'){
 			printf("exit!\n");
-			exit(2);	
+			exit(2);
 		}
 	}
 	
@@ -155,36 +164,24 @@ void huff_decompress(char *in_file, char *out_file){
 		exit(2);
 	}
 	
-	/*for(int i = 0; i < huff_tree_blocks; i++){
-		dec_to_bin(block_bin_code, encoded_huff_tree[i], 32);
-		printf("%s\n", block_bin_code);
-	}*/
-	
-	/*printf("---------------------\n");
-	printf("pre: %p\n", (void *)encoded_huff_tree);
-	*/
-	
 	
 	huff_node *root = rebuild_huff_tree(&encoded_huff_tree);	
-	traverse_huff_tree(root);
-	printf("root: %p\n", root->right->left->left->c);
-	//printf("end of tree\n");
+	//traverse_huff_tree(root);
 
 	//TODO: where to reset mask after rebuilding encoding tree to make it reusable...
-	unsigned int content_mask = 1 << 31;
+	unsigned int content_mask = 0;
 	
 	char output_buff[BUFF_SIZE];
 	int buff_pos = 0;
 
-	decode_content(root, root, content_mask, in_fd, output_buff, &buff_pos, out_fd);
+	decode_content(root, &content_mask, in_fd, output_buff, &buff_pos, out_fd);
 	
-	/*if(buff_pos > 0){
-		//printf("ostanek...%d\n\n", buff_pos);
+	if(buff_pos > 0){
 		//left over
 		output_buff[buff_pos] = '\0';
 		write(out_fd, output_buff, buff_pos);
 		//printf("%s", output_buff);
-	}*/
+	}
 
 	free(tmp);
 	
@@ -200,6 +197,7 @@ void huff_decompress(char *in_file, char *out_file){
 		exit(2);
 	}
 	
+	printf("Done!\n output: %s\n", out_file);
 }
 
 
