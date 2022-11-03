@@ -12,5 +12,8 @@
    - -d, decoding mode
    - -i, optional input file
    - -o, optional output file
+   - -g, launch GUI (not yet implemented)
+   - -s, print stats/info (not yet implemented)
+   - -h, display help
 
 
