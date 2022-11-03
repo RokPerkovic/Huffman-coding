@@ -8,8 +8,8 @@
     3. run the huff executable
     
 #### Command line options
-   - c
-   - d
-   - i
+   - -c
+   - -d
+   - -i
 
 
