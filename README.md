@@ -5,8 +5,11 @@
 #### Project structure:
 - driver: contains the program with main function, main.c
 - lib: contains  header files and libraries
-  - aaa
-  - bbb
+  - api: contains header files and source files that implement functions declared in headers
+  - src: contains the main library for Huffman encoding and decoding algorithms
+- compile: contains the Makefile
+- obj: after running make, object files are placed in here
+- bin: after running make, an executable program is placed in here 
 
 #### Usage: 
 
