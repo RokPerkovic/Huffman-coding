@@ -3,7 +3,12 @@
 ## Command line interface
 #### Usage: 
 
-    1. run the Makefile located in the compile directory
+    1. run the make command in the compile directory where Makefile is located
     2. it should create an executable called huff in the bin directory
     3. run the huff executable
-       - ./huff
+    
+#### Command line options
+    - -c
+    - -d
+
+
