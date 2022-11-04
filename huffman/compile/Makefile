@@ -3,9 +3,9 @@
 #constants:
 
 CC = gcc
-CFLAGS = -Wall -pedantic -std=c99
+CFLAGS = -g -Wall -pedantic -std=c99
 OBJ = huff
-LIBS = -lm
+LIBS = -lm -fopenmp
 
 all: ../bin/huff 
 	

@@ -274,6 +274,7 @@ void decode_content(huff_node *root, unsigned int *mask, int in_fd, char *output
 	
 	while((c = decode_char(root, mask, in_fd)) != 1000){
 		output_buff[*buff_pos] = c;
+		//printf("%c", c);
 	
 		if(*buff_pos == (BUFF_SIZE - 1)){
 			output_buff[*buff_pos] = c;

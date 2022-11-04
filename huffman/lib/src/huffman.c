@@ -21,35 +21,18 @@ void huff_encode(char *in_file, char *out_file){
 	printf("Encoding...\n input: %s\n", in_file);
 	
 	int in_fd, out_fd; //input, output file descriptors
-	char replace_answer;
 	
-	in_fd = open(in_file, O_RDONLY);
-	if(in_fd < 0){
+	if((in_fd = open(in_file, O_RDONLY)) < 0){
 		perror("Error opening input file...");
 		exit(1);
 	}
 	
-	//check if a file with the same name as out_file already exists
-	if (access(out_file, F_OK) == 0){
-		//file exists
-		printf("File %s already exists.\n", out_file);
-		printf("Do you want to replace it? (y/n)\n");
-		scanf("%c", &replace_answer);
-		if(replace_answer == 'n'){
-			printf("exit!\n");
-			exit(2);
-		}
-	}
-	
-	out_fd = open(out_file, O_WRONLY | O_CREAT | O_TRUNC, 0664);
-	if(out_fd < 0){
+	if((out_fd = open(out_file, O_WRONLY | O_CREAT | O_TRUNC, 0664)) < 0){
 		perror("Error opening output file...");
 		exit(1);
 	}
 	
-	
 	init_char_map();
-	
 	
 	//first traversal of the input file to gather input statistics
 	scan_in_file(in_fd);
@@ -117,30 +100,15 @@ void huff_encode(char *in_file, char *out_file){
 
 void huff_decode(char *in_file, char *out_file){
 	printf("Decoding...\n input: %s\n", in_file);
-	char replace_answer;
 	
 	int in_fd, out_fd; //input, output file descriptors
 	
-	in_fd = open(in_file, O_RDONLY);
-	if(in_fd < 0){
+	if((in_fd = open(in_file, O_RDONLY)) < 0){
 		perror("Error opening input file...");
 		exit(1);
 	}
 	
-	//check if a file with the same name as out_file already exists
-	if (access(out_file, F_OK) == 0){
-		//file exists
-		printf("File %s already exists.\n", out_file);
-		printf("Do you want to replace it? (y/n)\n");
-		scanf("%c", &replace_answer);
-		if(replace_answer == 'n'){
-			printf("exit!\n");
-			exit(2);
-		}
-	}
-	
-	out_fd = open(out_file, O_WRONLY | O_CREAT | O_TRUNC, 0664);
-	if(out_fd < 0){
+	if((out_fd = open(out_file, O_WRONLY | O_CREAT | O_TRUNC, 0664)) < 0){
 		perror("Error opening output file...");
 		exit(1);
 	}
