@@ -41,6 +41,13 @@ Output file name argument is optional. You can specify it as a -o followed by a 
 - in encoding mode, file name will be the same as input file name but with .huff extension
 - In decoding mode, file name will be the same as input file name but without .huff extension
 
+## Implementation
+####Encoding
+  aaaaa
+
+####Decoding
+  bbbbb
+
 
 
 
