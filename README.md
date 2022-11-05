@@ -50,13 +50,17 @@ Output file name argument is optional. You can specify it as a -o followed by a 
   Encoding tree is build using the deque operation on priority queue which is implemented as binary min-heap. Dequeue returns the character with the smallest occurance probability.
   When the encoding tree is built, encoding of the leaf nodes takes place. Left branch in the subtree contributes a bit 0 to the character code and the right branch bit 1. At run-time, the codes are stored as strings. 
   When the assigning of codes to the characters is complete, its time to encode the input file.
+  First we need to encode the encoding tree so the decoder has the exact same tree as encoder.
+  Tree is encoded with pre-order traversal. Non-leaf nodes are represented with bit 0, while leaf nodes are represented as bit 1 followed by a 16-bits that represent the value of a character that this leaf holds.
+  After the encoded tree the encoded content is written.
   That requires second traversal of the input file. Instead of characters found in the input, their codes are written in the output file. Codes are shifted into a 32-bit bit-buffer and when its full, we write it into the encoded file.
   At the end, the pseudo EOF character code gets written. 
   
+  
 
 #### Decoding
-  bbbbb
-
+  First byte n in the encoded file represents the number of encoded encoding tree blocks, so n 32-bit blocks are read into memory. Decoder first reconstructs the encoding tree so it can decode the following encoded content.
+Encoded content is read bit by bit and according to the rule of 1 meaning move right and 0 move left, the decoder moves throught the tree from the root down to the leaf nodes. When the code brings it to the leaf node, encoder gets the character in that node and writes it to the output buffer.
 
 
 
