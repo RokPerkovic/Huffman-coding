@@ -63,4 +63,7 @@ Output file name argument is optional. You can specify it as a -o followed by a 
 Encoded content is read bit by bit and according to the rule of bit 1 (meaning move right) and bit 0 (meaning move left), the decoder moves throught the tree from the root down to the leaf nodes. When the code brings it to the leaf node, encoder  writes the character in that node to the output buffer.
 
 
+## Issues and possible improvements:
+
+
 
