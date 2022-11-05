@@ -32,7 +32,7 @@ Decoder first reconstructs the encoding tree and then uses it to decode the cont
    - -i, optional input file
    - -o, optional output file
    - -g, launch GUI (not yet implemented)
-   - -s, print stats/info (not yet implemented)
+   - -s, print stats/info
    - -h, display help
 
 Input file name argument is required. You can specify it as a -i followed by a file name or just as a standard argument. 
@@ -43,7 +43,11 @@ Output file name argument is optional. You can specify it as a -o followed by a 
 
 ## Implementation
 #### Encoding
-  aaaaa
+  Implementation of encoding is static meaning the encoding tree is built after first reading of the input.
+  First scan of the input file results in a map of unique characters that appear in the file. It is assumed that the input contains at most 256 unique characters therefore the map is of size 256 + 1 for the pseudo EOF character.
+  Every new not yet seen character is inserted at index in the map that is it`s ascii decimal value for example: 
+  'a'...97 is inserted at tndex 97, 'b' at 98, ...; This approach eliminates the searching of each character later on when the encoded values get written in the ouput file.
+  
 
 #### Decoding
   bbbbb
