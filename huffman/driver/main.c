@@ -16,6 +16,17 @@
 
 struct stat file_info;
 
+struct stats{
+	char *in_file;
+	char *out_file;
+	float in_file_size;
+	float out_file_size;
+	float time_elapsed;
+	float saved_space;
+	int cmprs_ratio;
+	int mode;
+};
+
 void help(){
 	fprintf(stderr, "Usage: huff -c <filename> [-i <filename>] [-o <filename>] | huff -d <filename> [-i <filename>] [-o <filename>]\n");
 	exit(2);
@@ -42,51 +53,76 @@ void set_default_out_file(char *filename, char *name, int mode){
 }
 
 
-void print_stats(float time_elapsed, float saved /* compression_ratio, ... */){
-	printf("\n***Statistics****\n");
+void print_stats(struct stats *cmprs_stats){
+	printf("\n****Statistics****\n");
+	
+	//TODO: encoded > source
+	//TODO: check if field is not NULL? in struct (decoding...)
 
-
-	if(saved >= 100000){
-		saved/=1000000;
-		printf("Saved: %.2f MB\n", saved);
-	}
-	else if(saved >= 1000){
-		saved/=1000;
-		printf("Saved: %.2f kB\n", saved);
+	if(cmprs_stats->mode == 1){	
+		//encoding
+		if(cmprs_stats->saved_space >= 1000000){
+			cmprs_stats->saved_space/=1000000;
+			printf("Saved: %.2f MB\n", cmprs_stats->saved_space);
+		}
+		else if(cmprs_stats->saved_space >= 1000){
+			cmprs_stats->saved_space/=1000;
+			printf("Saved: %.2f kB\n", cmprs_stats->saved_space);
+		}
+		else{
+			printf("Saved: %.2f B\n", cmprs_stats->saved_space);
+		}
+		
+		if(cmprs_stats->time_elapsed < 1){
+			printf("time elapsed: %.2f ms\n", cmprs_stats->time_elapsed * 1000);
+		}
+		else{
+			printf("time elapsed: %.2f s\n", cmprs_stats->time_elapsed);
+		}	
+		
+		if(cmprs_stats->cmprs_ratio >= 0){
+			printf("Compression ratio: %d %%\n", cmprs_stats->cmprs_ratio);
+		}
+		else{
+			printf("Compression: encoded file is larger than original.\n");
+		}
+		
 	}
 	else{
-		printf("Saved: %.2f B\n", saved);
+		//decoding --> display only elapsed time.
+		if(cmprs_stats->time_elapsed < 1){
+			printf("time elapsed: %.2f ms\n", cmprs_stats->time_elapsed * 1000);
+		}
+		else{
+			printf("time elapsed: %.2f s\n", cmprs_stats->time_elapsed);
+		}
 	}
-	
-	if(time_elapsed < 1){
-		printf("time elapsed: %.2f ms\n", time_elapsed * 1000);
-	}
-	else{
-		printf("time elapsed: %.2f s\n", time_elapsed);
-	}	
-	
 	
 }
 
-double get_compression_ratio(char *in_file, char *out_file){
-	float in_file_size, out_file_size;
-	float saved = 0.0;
+void get_saved_space(struct stats *cmprs_stats){
 	
-	if(stat(in_file, &file_info) < 0){
+	if(stat(cmprs_stats->in_file, &file_info) < 0){
 		perror("Could not retrieve input file info");
 	}
 	
-	in_file_size = file_info.st_size;
+	cmprs_stats->in_file_size = file_info.st_size;
 	
-	if(stat(out_file, &file_info) < 0){
+	if(stat(cmprs_stats->out_file, &file_info) < 0){
 		perror("Could not retrieve output file info");
 	}
 	
-	out_file_size = file_info.st_size;
-	saved = in_file_size - out_file_size;
-	
-	return saved;
-		
+	cmprs_stats->out_file_size = file_info.st_size;
+	cmprs_stats->saved_space = (cmprs_stats->in_file_size) - (cmprs_stats->out_file_size);	
+}
+
+void get_cmprs_ratio(struct stats *cmprs_stats){
+	if(cmprs_stats->out_file_size > cmprs_stats->in_file_size){
+		cmprs_stats->cmprs_ratio = -1;	
+	}
+	else{
+		cmprs_stats->cmprs_ratio = ((cmprs_stats->out_file_size) / (cmprs_stats->in_file_size)) * 100;
+	}
 }
 
 int main(int argc, char *args[]){
@@ -186,9 +222,17 @@ int main(int argc, char *args[]){
 		//TODO: compression ratio, saved space, ...
 		
 		if(stats){
-			float time_elapsed = e - s;
-			float compr = get_compression_ratio(in_file, out_file);
-			print_stats(time_elapsed, compr);
+			struct stats *cmprs_stats = malloc(sizeof(struct stats));
+			cmprs_stats->mode = 1;
+			cmprs_stats->in_file = in_file;
+			cmprs_stats->out_file = out_file;
+			cmprs_stats->time_elapsed = e - s;
+			
+			get_saved_space(cmprs_stats);
+			get_cmprs_ratio(cmprs_stats);
+			
+			print_stats(cmprs_stats);
+			free(cmprs_stats);
 		}
 		
 		
@@ -216,8 +260,11 @@ int main(int argc, char *args[]){
 		float e = omp_get_wtime();
 		
 		if(stats){
-			float time_elapsed = e - s;
-			print_stats(time_elapsed, 0);
+			struct stats *cmprs_stats = malloc(sizeof(struct stats));
+			cmprs_stats->mode = 2;
+			cmprs_stats->time_elapsed = e - s;
+			print_stats(cmprs_stats);
+			free(cmprs_stats);
 		}
 	}
 	else{
