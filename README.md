@@ -45,8 +45,13 @@ Output file name argument is optional. You can specify it as a -o followed by a 
 #### Encoding
   Implementation of encoding is static meaning the encoding tree is built after first reading of the input.
   First scan of the input file results in a map of unique characters that appear in the file. It is assumed that the input contains at most 256 unique characters therefore the map is of size 256 + 1 for the pseudo EOF character.
-  Every new not yet seen character is inserted at index in the map that is it`s ascii decimal value for example: 
-  'a'...97 is inserted at tndex 97, 'b' at 98, ...; This approach eliminates the searching of each character later on when the encoded values get written in the ouput file.
+  Every new not yet seen character is inserted at index in the map that is its ascii decimal value for example: 
+  'a'...97 is inserted at tndex 97, 'b' at 98, ...; This approach eliminates the searching of each character later on when the encoded values get written in the ouput file and checking if the just read character already exists in the map.
+  Encoding tree is build using the deque operation on priority queue which is implemented as binary min-heap. Dequeue returns the character with the smallest occurance probability.
+  When the encoding tree is built, encoding of the leaf nodes takes place. Left branch in the subtree contributes a bit 0 to the character code and the right branch bit 1. At run-time, the codes are stored as strings. 
+  When the assigning of codes to the characters is complete, its time to encode the input file.
+  That requires second traversal of the input file. Instead of characters found in the input, their codes are written in the output file. Codes are shifted into a 32-bit bit-buffer and when its full, we write it into the encoded file.
+  At the end, the pseudo EOF character code gets written. 
   
 
 #### Decoding
