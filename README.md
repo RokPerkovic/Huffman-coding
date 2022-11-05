@@ -60,7 +60,7 @@ Output file name argument is optional. You can specify it as a -o followed by a 
 
 #### Decoding
   First byte n in the encoded file represents the number of encoded encoding tree blocks, so n 32-bit blocks are read into memory. Decoder first reconstructs the encoding tree so it can decode the following encoded content.
-Encoded content is read bit by bit and according to the rule of 1 meaning move right and 0 move left, the decoder moves throught the tree from the root down to the leaf nodes. When the code brings it to the leaf node, encoder gets the character in that node and writes it to the output buffer.
+Encoded content is read bit by bit and according to the rule of bit 1 (meaning move right) and bit 0 (meaning move left), the decoder moves throught the tree from the root down to the leaf nodes. When the code brings it to the leaf node, encoder  writes the character in that node to the output buffer.
 
 
 
